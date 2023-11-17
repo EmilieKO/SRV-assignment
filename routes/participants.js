@@ -18,6 +18,12 @@ router.get('/', async function (req, res, next) {
 
 router.post('/add', async function (req, res, next) {
     const { email, firstName, lastName, dob, active, work, home } = req.body
+    if (!email || !firstName || !lastName || !dob || active === undefined || !work || !home) {
+        return res.jsend.fail({ message: "Missing required fields" });
+    }
+    if (!work.companyName || work.salary === undefined || !work.currency || !home.country || !home.city) {
+        return res.jsend.fail({ message: "Missing required work or home details" });
+    }
     const dobRegex = /^\d{4}\/\d{2}\/\d{2}$/;
     if (!dobRegex.test(dob)) {
         return res.jsend.fail({ message: "DOB must be in YYYY/MM/DD format" })
@@ -54,7 +60,7 @@ router.get('/details', async function (req, res, next) {
                 let details = await participants.get(key);
                 if (details.props.active == 1) {
                     let participantDetails = {
-                        email: details.props.email,
+                        email: details.key,
                         firstName: details.props.firstName,
                         lastName: details.props.lastName,
                         created: details.props.created,
@@ -113,7 +119,7 @@ router.get('/work/:email', async function (req, res, next) {
         const work = participant.props.work
         res.jsend.success({ work })
     } catch (error) {
-        res.jsend.error({ message: "Failed to retrieve participant details", error: error.message });
+        res.jsend.error({ message: "Failed to retrieve participant workplace", error: error.message });
     }
 })
 
@@ -124,7 +130,7 @@ router.get('/home/:email', async function (req, res, next) {
         const home = participant.props.home
         res.jsend.success({ home })
     } catch (error) {
-        res.jsend.error({ message: "Failed to retrieve participant details", error: error.message });
+        res.jsend.error({ message: "Failed to retrieve participant home", error: error.message });
     }
 })
 
