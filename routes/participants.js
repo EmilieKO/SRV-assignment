@@ -151,11 +151,25 @@ router.delete('/:email', async function (req, res, next) {
 router.put('/:email', async function (req, res, next) {
     try {
         const emailParam = req.params.email;
-        const { email, firstName, lastName, dob, work, home } = req.body
+        const { email, firstName, lastName, dob, work, home, active } = req.body
         
         const existingParticipant = await participants.get(emailParam);
         if (!existingParticipant) {
             return res.jsend.fail({ message: "Participant not found" });
+        }
+        if (!email || !firstName || !lastName || !dob || active === undefined || !work || !home) {
+            return res.jsend.fail({ message: "Missing required fields" });
+        }
+        if (!work.companyName || work.salary === undefined || !work.currency || !home.country || !home.city) {
+            return res.jsend.fail({ message: "Missing required work or home details" });
+        }
+        const dobRegex = /^\d{4}\/\d{2}\/\d{2}$/;
+        if (!dobRegex.test(dob)) {
+            return res.jsend.fail({ message: "DOB must be in YYYY/MM/DD format" })
+        }
+        const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+        if (!emailRegex.test(email)) {
+            return res.jsend.fail({ message: "Invalid email format" });
         }
         await participants.set(email, {
             firstName: firstName,
